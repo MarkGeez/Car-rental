@@ -1,0 +1,5 @@
+@extends('layouts.admin')
+@section('title', 'Manage vendors')
+@section('admin-content')
+<div class="space-y-6"><div class="flex items-center justify-between"><h1 class="text-3xl font-bold">Vendors</h1><a href="{{ url('/admin/vendors?status=pending') }}" class="rounded-xl border px-4 py-2 text-sm font-semibold">Pending only</a></div><div class="overflow-hidden rounded-2xl border border-slate-200 bg-white"><div class="divide-y divide-slate-100">@forelse (($vendors ?? []) as $vendor)<a href="{{ url('/admin/vendors/'.$vendor->id) }}" class="flex items-center justify-between gap-4 p-5"><span><strong>{{ $vendor->business_name }}</strong><small class="ml-2 text-slate-500">{{ $vendor->city }}</small></span>@include('partials.status-badge', ['status' => $vendor->verification_status])</a>@empty<div class="p-10 text-center"><p class="text-slate-500">No vendors have submitted a business profile yet.</p><p class="mt-2 text-sm text-slate-400">A vendor appears here after completing the business profile and uploading a permit.</p></div>@endforelse</div></div></div>
+@endsection

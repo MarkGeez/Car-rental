@@ -1,0 +1,5 @@
+@extends('layouts.user')
+@section('title', 'My rentals')
+@section('user-content')
+<div class="space-y-6"><div><h1 class="text-3xl font-bold">My rentals</h1><p class="mt-2 text-slate-500">Track your bookings and rental history.</p></div><div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="divide-y divide-slate-100">@forelse (($rentals ?? []) as $rental)<a href="{{ url('/user/rentals/'.$rental->id) }}" class="flex flex-col gap-3 p-5 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"><div><p class="font-semibold">{{ $rental->vehicle->brand ?? 'Vehicle' }} {{ $rental->vehicle->model ?? '' }}</p><p class="text-sm text-slate-500">{{ $rental->pickup_date ?? '' }} to {{ $rental->return_date ?? '' }}</p></div><div class="flex items-center gap-4">@include('partials.status-badge', ['status' => $rental->status])<span class="font-semibold">₱{{ number_format($rental->total_amount ?? 0, 2) }}</span></div></a>@empty<p class="p-10 text-center text-slate-500">You have no rentals yet.</p>@endforelse</div></div></div>
+@endsection

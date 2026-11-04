@@ -1,0 +1,5 @@
+@extends('layouts.admin')
+@section('title', 'Manage users')
+@section('admin-content')
+<div class="space-y-6"><h1 class="text-3xl font-bold">Users</h1><div class="overflow-hidden rounded-2xl border border-slate-200 bg-white"><div class="divide-y divide-slate-100">@forelse (($users ?? []) as $user)<div class="flex flex-wrap items-center justify-between gap-4 p-5"><div><p class="font-semibold">{{ $user->name }}</p><p class="text-sm text-slate-500">{{ $user->email }} · {{ ucfirst($user->role) }}</p></div><div class="flex items-center gap-3">@include('partials.status-badge', ['status' => $user->status])<form method="POST" action="{{ url('/admin/users/'.$user->id.'/status') }}">@csrf @method('PATCH')<input type="hidden" name="status" value="{{ $user->status === 'active' ? 'suspended' : 'active' }}"><button class="text-sm font-semibold text-indigo-600">{{ $user->status === 'active' ? 'Suspend' : 'Activate' }}</button></form></div></div>@empty<p class="p-10 text-center text-slate-500">No users found.</p>@endforelse</div></div></div>
+@endsection
