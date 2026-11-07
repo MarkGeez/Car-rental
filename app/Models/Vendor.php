@@ -18,6 +18,7 @@ class Vendor extends Model
         'address',
         'city',
         'business_permit',
+        'payment_qr_code',
         'verification_status',
         'verified_at',
     ];

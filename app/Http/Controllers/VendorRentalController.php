@@ -35,9 +35,12 @@ class VendorRentalController extends Controller
     {
         $this->verifiedVendor($request);
         $rental = $this->ownedRental($request, $rental);
+        $rental->load('payment');
 
         DB::transaction(function () use ($rental): void {
             $lockedRental = Rental::query()->lockForUpdate()->findOrFail($rental->id);
+            $lockedRental->load('payment');
+            abort_unless($lockedRental->payment?->payment_status === 'paid', 422, 'The payment must be marked as paid before the rental can be approved.');
             abort_unless($lockedRental->status === 'pending', 422, 'Only pending rentals can be approved.');
 
             $hasConflict = Rental::query()
@@ -83,6 +86,59 @@ class VendorRentalController extends Controller
         $rental->update(['status' => 'completed']);
 
         return back()->with('success', 'Rental marked as completed.');
+    }
+
+    public function markPaymentPaid(Request $request, Rental $rental): RedirectResponse
+    {
+        $this->verifiedVendor($request);
+        $rental = $this->ownedRental($request, $rental);
+
+        DB::transaction(function () use ($rental): void {
+            $lockedRental = Rental::query()->lockForUpdate()->findOrFail($rental->id);
+            $payment = $lockedRental->payment()->lockForUpdate()->firstOrFail();
+            abort_unless($payment->payment_status === 'pending', 422, 'Only pending payments can be marked as paid.');
+
+            $hasPaidConflict = Rental::query()
+                ->where('vehicle_id', $lockedRental->vehicle_id)
+                ->whereKeyNot($lockedRental->id)
+                ->whereIn('status', ['approved', 'ongoing'])
+                ->whereDate('pickup_date', '<=', $lockedRental->return_date)
+                ->whereDate('return_date', '>=', $lockedRental->pickup_date)
+                ->lockForUpdate()
+                ->exists();
+
+            abort_if($hasPaidConflict, 422, 'Another payment already reserved this vehicle for the selected dates. Refund this duplicate payment instead.');
+
+            $payment->update([
+                'payment_status' => 'paid',
+                'paid_at' => now(),
+                'reviewed_at' => now(),
+            ]);
+            $lockedRental->update(['status' => 'approved']);
+        });
+
+        return back()->with('success', 'Payment marked as paid and rental reserved.');
+    }
+
+    public function refundPayment(Request $request, Rental $rental): RedirectResponse
+    {
+        $this->verifiedVendor($request);
+        $rental = $this->ownedRental($request, $rental);
+
+        DB::transaction(function () use ($rental): void {
+            $lockedRental = Rental::query()->lockForUpdate()->findOrFail($rental->id);
+            $payment = $lockedRental->payment()->lockForUpdate()->firstOrFail();
+            abort_unless($payment->payment_status === 'pending', 422, 'Only pending payments can be refunded.');
+
+            $payment->update([
+                'payment_status' => 'refunded',
+                'reviewed_at' => now(),
+                'refunded_at' => now(),
+            ]);
+            $lockedRental->update(['status' => 'cancelled']);
+        });
+
+        return back()->with('success', 'Duplicate payment marked for refund and rental cancelled.');
     }
 
     public function earnings(Request $request): View

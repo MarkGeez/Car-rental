@@ -49,7 +49,13 @@ class VendorController extends Controller
 
         $data = $this->validatedProfile($request, true);
         $data['user_id'] = $request->user()->id;
-        $data['business_permit'] = $request->file('business_permit')->store('business-permits', 'public');
+
+        if ($request->hasFile('business_permit')) {
+            $data['business_permit'] = $request->file('business_permit')->store('business-permits', 'public');
+        }
+        if ($request->hasFile('payment_qr_code')) {
+            $data['payment_qr_code'] = $request->file('payment_qr_code')->store('payment-qr-codes', 'public');
+        }
 
         Vendor::create($data);
 
@@ -67,6 +73,12 @@ class VendorController extends Controller
                 Storage::disk('public')->delete($vendor->business_permit);
             }
             $data['business_permit'] = $request->file('business_permit')->store('business-permits', 'public');
+        }
+        if ($request->hasFile('payment_qr_code')) {
+            if ($vendor->payment_qr_code) {
+                Storage::disk('public')->delete($vendor->payment_qr_code);
+            }
+            $data['payment_qr_code'] = $request->file('payment_qr_code')->store('payment-qr-codes', 'public');
         }
 
         if ($vendor->verification_status === 'rejected') {
@@ -96,6 +108,7 @@ class VendorController extends Controller
                 'mimes:jpg,jpeg,png',
                 'max:10240',
             ],
+            'payment_qr_code' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ], [
             'business_permit.uploaded' => 'The business permit upload was not received. Please select a JPG, JPEG, or PNG image smaller than 10 MB and try again.',
             'business_permit.image' => 'The business permit must be a valid JPG, JPEG, or PNG image.',

@@ -64,6 +64,23 @@ class AuthController extends Controller
         return view('user.profile', ['user' => $request->user()]);
     }
 
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:255'],
+            'password' => ['nullable', 'confirmed', Password::defaults()],
+        ]);
+
+        if (blank($data['password'] ?? null)) {
+            unset($data['password']);
+        }
+
+        $request->user()->update($data);
+
+        return redirect()->route('user.profile')->with('success', 'Your profile has been updated.');
+    }
+
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();

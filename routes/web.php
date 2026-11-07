@@ -29,26 +29,37 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::get('/cars', [VehicleController::class, 'index'])->name('cars.index');
 Route::get('/cars/{vehicle}', [VehicleController::class, 'show'])->name('cars.show');
 
+Route::middleware(['auth', 'role:customer'])->group(function () {
+    Route::get('/cars/{vehicle}/book', [VehicleController::class, 'book'])->name('cars.book');
+    Route::post('/cars/{vehicle}/book', [RentalController::class, 'store'])->name('cars.book.store');
+});
+
 Route::middleware(['auth', 'role:customer'])->prefix('user')->group(function () {
-    Route::get('/dashboard', fn () => view('user.dashboard'))->name('user.dashboard');
+    Route::get('/dashboard', [RentalController::class, 'dashboard'])->name('user.dashboard');
     Route::get('/me', [AuthController::class, 'me'])->name('user.me');
+    Route::get('/profile', [AuthController::class, 'me'])->name('user.profile');
+    Route::patch('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout'])->name('user.logout');
     Route::get('/vehicles/{vehicle}/availability', [VehicleController::class, 'availability']);
     Route::get('/rentals', [RentalController::class, 'index']);
     Route::post('/rentals', [RentalController::class, 'store']);
-    Route::get('/rentals/{rental}', [RentalController::class, 'show']);
+    Route::get('/rentals/{rental}', [RentalController::class, 'show'])->name('user.rentals.show');
+    Route::get('/rentals/{rental}/payment', [PaymentController::class, 'show'])->name('user.rentals.payment');
+    Route::post('/rentals/{rental}/payment', [PaymentController::class, 'store']);
     Route::patch('/rentals/{rental}/cancel', [RentalController::class, 'cancel']);
     Route::post('/rentals/{rental}/pay', [PaymentController::class, 'pay']);
+    Route::get('/rentals/{rental}/review', [ReviewController::class, 'create'])->name('user.rentals.review');
     Route::post('/rentals/{rental}/review', [ReviewController::class, 'store']);
 });
 
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->group(function () {
     Route::get('/dashboard', [VendorController::class, 'dashboard'])->name('vendor.dashboard');
-    Route::get('/me', [AuthController::class, 'me'])->name('vendor.me');
+    Route::get('/me', fn () => redirect()->route('vendor.profile'))->name('vendor.me');
     Route::post('/logout', [AuthController::class, 'logout'])->name('vendor.logout');
-    Route::get('/profile', [VendorController::class, 'show']);
+    Route::get('/profile', [VendorController::class, 'show'])->name('vendor.profile');
     Route::post('/profile', [VendorController::class, 'store']);
     Route::match(['PUT', 'PATCH'], '/profile', [VendorController::class, 'update']);
+    Route::patch('/vehicles/{vehicle}/status', [VendorVehicleController::class, 'updateStatus'])->name('vehicles.status');
     Route::resource('vehicles', VendorVehicleController::class);
     Route::post('/vehicles/{vehicle}/images', [VendorVehicleController::class, 'addImage']);
     Route::delete('/vehicles/{vehicle}/images/{image}', [VendorVehicleController::class, 'deleteImage']);
@@ -58,6 +69,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->group(function () 
     Route::patch('/rentals/{rental}/reject', [VendorRentalController::class, 'reject']);
     Route::patch('/rentals/{rental}/start', [VendorRentalController::class, 'start']);
     Route::patch('/rentals/{rental}/complete', [VendorRentalController::class, 'complete']);
+    Route::patch('/rentals/{rental}/payment/paid', [VendorRentalController::class, 'markPaymentPaid'])->name('vendor.rentals.payment.paid');
+    Route::patch('/rentals/{rental}/payment/refund', [VendorRentalController::class, 'refundPayment'])->name('vendor.rentals.payment.refund');
     Route::get('/earnings', [VendorRentalController::class, 'earnings']);
 });
 

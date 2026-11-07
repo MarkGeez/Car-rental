@@ -15,8 +15,11 @@ class Payment extends Model
         'amount',
         'payment_method',
         'transaction_reference',
+        'proof_path',
         'payment_status',
         'paid_at',
+        'reviewed_at',
+        'refunded_at',
     ];
 
     protected function casts(): array
@@ -24,6 +27,8 @@ class Payment extends Model
         return [
             'amount' => 'decimal:2',
             'paid_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 

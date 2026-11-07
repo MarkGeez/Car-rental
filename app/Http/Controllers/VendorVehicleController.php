@@ -33,7 +33,7 @@ class VendorVehicleController extends Controller
         $vendor = $this->verifiedVendor($request);
         $data = $this->validatedVehicle($request);
         $data['vendor_id'] = $vendor->id;
-        $data['status'] = $request->boolean('available') ? 'available' : 'unavailable';
+        $data['status'] = $this->requestedStatus($request);
         $vehicle = $vendor->vehicles()->create($data);
 
         $this->storeImages($request, $vehicle);
@@ -62,11 +62,24 @@ class VendorVehicleController extends Controller
         $vehicle = $this->ownedVehicle($request, $vehicle);
         $vehicle->update([
             ...$this->validatedVehicle($request, $vehicle),
-            'status' => $request->boolean('available') ? 'available' : 'unavailable',
+            'status' => $this->requestedStatus($request),
         ]);
         $this->storeImages($request, $vehicle);
 
         return redirect()->route('vehicles.index')->with('success', 'Vehicle updated successfully.');
+    }
+
+    public function updateStatus(Request $request, Vehicle $vehicle): RedirectResponse
+    {
+        $this->verifiedVendor($request);
+        $vehicle = $this->ownedVehicle($request, $vehicle);
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['available', 'unavailable'])],
+        ]);
+
+        $vehicle->update(['status' => $data['status']]);
+
+        return back()->with('success', 'Vehicle status updated successfully.');
     }
 
     public function destroy(Request $request, Vehicle $vehicle): RedirectResponse
@@ -156,5 +169,16 @@ class VendorVehicleController extends Controller
                 'image_path' => $image->store('vehicle-images', 'public'),
             ]);
         }
+    }
+
+    private function requestedStatus(Request $request): string
+    {
+        if ($request->has('status')) {
+            return $request->validate([
+                'status' => [Rule::in(['available', 'unavailable'])],
+            ])['status'];
+        }
+
+        return $request->boolean('available') ? 'available' : 'unavailable';
     }
 }

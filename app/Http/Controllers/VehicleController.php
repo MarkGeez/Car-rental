@@ -45,11 +45,25 @@ class VehicleController extends Controller
             404,
         );
 
-        $vehicle->load(['images', 'vendor']);
+        $vehicle->load(['images', 'vendor', 'reviews.rental.customer']);
 
         return view('cars.show', [
             'vehicle' => $vehicle,
-            'reviews' => collect(),
+            'reviews' => $vehicle->reviews,
+        ]);
+    }
+
+    public function book(Request $request, Vehicle $vehicle): View
+    {
+        abort_unless(
+            $vehicle->status === 'available'
+                && $vehicle->vendor()->where('verification_status', 'verified')->exists(),
+            404,
+        );
+
+        return view('user.book', [
+            'vehicle' => $vehicle,
+            'totalAmount' => 0,
         ]);
     }
 

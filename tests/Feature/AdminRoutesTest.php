@@ -24,6 +24,7 @@ test('an admin can access the admin pages', function () {
         'business_name' => 'Test Fleet',
         'address' => '1 Main Street',
         'city' => 'Manila',
+        'business_permit' => 'business-permits/test-permit.jpg',
     ]);
     $vehicle = Vehicle::create([
         'vendor_id' => $vendor->id,
@@ -54,7 +55,11 @@ test('an admin can access the admin pages', function () {
 
     $this->get(route('admin.dashboard'))->assertOk();
     $this->get('/admin/vendors')->assertOk();
-    $this->get("/admin/vendors/{$vendor->id}")->assertOk();
+    $this->get("/admin/vendors/{$vendor->id}")
+        ->assertOk()
+        ->assertSee('Uploaded business permit')
+        ->assertSee('storage/business-permits/test-permit.jpg')
+        ->assertSee('Test Fleet business permit');
     $this->get('/admin/users')->assertOk();
     $this->get('/admin/vehicles')->assertOk();
     $this->get('/admin/rentals')->assertOk();

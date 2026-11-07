@@ -41,6 +41,14 @@ function vehicleForVendor(Vendor $vendor, string $plate = 'VAN-001'): Vehicle
     ]);
 }
 
+test('the vendor me route redirects to the vendor profile route', function () {
+    [$user] = vendorUser('verified');
+
+    $this->actingAs($user)
+        ->get('/vendor/me')
+        ->assertRedirect(route('vendor.profile'));
+});
+
 test('a vendor can submit a business profile and remains blocked until verified', function () {
     Storage::fake('public');
     $user = User::factory()->create(['role' => 'vendor', 'status' => 'active']);
@@ -112,6 +120,44 @@ test('a verified vendor can create and delete vehicles with images', function ()
 
     $this->actingAs($user)->delete("/vendor/vehicles/{$vehicle->id}")->assertRedirect(route('vehicles.index'));
     expect(Vehicle::find($vehicle->id))->toBeNull();
+});
+
+test('a verified vendor can edit a vehicle and change its status', function () {
+    [$user, $vendor] = vendorUser('verified');
+    $vehicle = vehicleForVendor($vendor, 'VAN-004');
+
+    $this->actingAs($user)
+        ->get('/vendor/vehicles')
+        ->assertOk()
+        ->assertSee('Edit listing')
+        ->assertSee('Unavailable');
+
+    $this->actingAs($user)
+        ->patch("/vendor/vehicles/{$vehicle->id}", [
+            'brand' => 'Honda',
+            'model' => 'City',
+            'year' => 2024,
+            'plate_number' => 'VAN-004',
+            'vehicle_type' => 'Sedan',
+            'transmission' => 'Automatic',
+            'fuel_type' => 'Gasoline',
+            'seats' => 5,
+            'daily_price' => 1800,
+            'security_deposit' => 6000,
+            'description' => 'Updated listing',
+            'status' => 'available',
+        ])
+        ->assertRedirect(route('vehicles.index'));
+
+    expect($vehicle->refresh())
+        ->brand->toBe('Honda')
+        ->status->toBe('available');
+
+    $this->actingAs($user)
+        ->patch("/vendor/vehicles/{$vehicle->id}/status", ['status' => 'unavailable'])
+        ->assertRedirect();
+
+    expect($vehicle->refresh()->status)->toBe('unavailable');
 });
 
 test('vendor approval rejects overlapping approved rentals', function () {
