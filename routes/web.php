@@ -18,8 +18,10 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register'])
+        ->middleware('throttle:register');
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:login');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])
@@ -34,7 +36,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::post('/cars/{vehicle}/book', [RentalController::class, 'store'])->name('cars.book.store');
 });
 
-Route::middleware(['auth', 'role:customer'])->prefix('user')->group(function () {
+Route::middleware(['auth', 'role:customer', 'throttle:authenticated'])->prefix('user')->group(function () {
     Route::get('/dashboard', [RentalController::class, 'dashboard'])->name('user.dashboard');
     Route::get('/me', [AuthController::class, 'me'])->name('user.me');
     Route::get('/profile', [AuthController::class, 'me'])->name('user.profile');
@@ -52,7 +54,7 @@ Route::middleware(['auth', 'role:customer'])->prefix('user')->group(function () 
     Route::post('/rentals/{rental}/review', [ReviewController::class, 'store']);
 });
 
-Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->group(function () {
+Route::middleware(['auth', 'role:vendor', 'throttle:authenticated'])->prefix('vendor')->group(function () {
     Route::get('/dashboard', [VendorController::class, 'dashboard'])->name('vendor.dashboard');
     Route::get('/me', fn () => redirect()->route('vendor.profile'))->name('vendor.me');
     Route::post('/logout', [AuthController::class, 'logout'])->name('vendor.logout');
@@ -74,7 +76,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->group(function () 
     Route::get('/earnings', [VendorRentalController::class, 'earnings']);
 });
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'role:admin', 'throttle:authenticated'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/me', [AuthController::class, 'me'])->name('admin.me');
     Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
