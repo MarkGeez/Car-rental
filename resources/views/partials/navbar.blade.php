@@ -1,6 +1,6 @@
 <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
     <nav class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-3.5 sm:px-6 lg:px-8">
-        <a href="{{ url('/') }}" class="flex items-center gap-2.5 text-xl font-bold tracking-tight text-slate-950"><span class="grid h-9 w-9 place-items-center rounded-xl bg-indigo-600 text-sm text-white shadow-lg shadow-indigo-200">E</span>{{ config('app.name', 'RentaGo') }}</a>
+        <a href="{{ url('/') }}" class="flex items-center gap-2.5 text-xl font-bold tracking-tight text-slate-950"><span class="grid h-9 w-9 place-items-center rounded-xl bg-indigo-600 text-sm text-white shadow-lg shadow-indigo-200">R</span>{{ config('app.name', 'RentaGo') }}</a>
         <div class="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex">
             <a href="{{ url('/cars') }}" class="transition hover:text-indigo-700">Browse cars</a>
             @auth

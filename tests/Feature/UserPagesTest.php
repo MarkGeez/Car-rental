@@ -126,12 +126,37 @@ test('a customer can view and update their profile', function () {
     $response = $this->actingAs($customer)->patch('/user/profile', [
         'name' => 'Updated Customer',
         'contact_number' => '09171234567',
+        'address' => '123 Main Street, Quezon City',
+        'birthday' => '1995-06-15',
+        'gender' => 'male',
     ]);
 
     $response->assertRedirect(route('user.profile'));
-    expect($customer->fresh())
-        ->name->toBe('Updated Customer')
-        ->contact_number->toBe('09171234567');
+    $updatedCustomer = $customer->fresh();
+
+    expect($updatedCustomer->name)->toBe('Updated Customer');
+    expect($updatedCustomer->contact_number)->toBe('09171234567');
+    expect($updatedCustomer->address)->toBe('123 Main Street, Quezon City');
+    expect($updatedCustomer->birthday->toDateString())->toBe('1995-06-15');
+    expect($updatedCustomer->gender)->toBe('male');
+});
+
+test('a customer cannot set a future birthday', function () {
+    $customer = User::factory()->create([
+        'role' => 'customer',
+        'status' => 'active',
+    ]);
+
+    $response = $this->actingAs($customer)->from('/user/profile')->patch('/user/profile', [
+        'name' => 'Updated Customer',
+        'birthday' => now()->addDay()->toDateString(),
+    ]);
+
+    $response
+        ->assertRedirect('/user/profile')
+        ->assertSessionHasErrors('birthday');
+
+    expect($customer->fresh()->name)->toBe($customer->name);
 });
 
 test('a customer can review a completed rental only once', function () {

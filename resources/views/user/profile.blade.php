@@ -32,6 +32,53 @@
         </label>
 
         <label class="block text-sm font-medium text-slate-700">
+            Email address
+            <input
+                type="email"
+                value="{{ auth()->user()->email }}"
+                readonly
+                class="mt-2 w-full rounded-xl border-slate-300 bg-slate-50 text-slate-500 shadow-sm"
+            >
+        </label>
+
+        <label class="block text-sm font-medium text-slate-700">
+            Address
+            <textarea
+                name="address"
+                rows="3"
+                maxlength="500"
+                class="mt-2 w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >{{ old('address', auth()->user()->address ?? '') }}</textarea>
+        </label>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+            <label class="block text-sm font-medium text-slate-700">
+                Birthday
+                <input
+                    type="date"
+                    name="birthday"
+                    value="{{ old('birthday', optional(auth()->user()->birthday)->format('Y-m-d')) }}"
+                    max="{{ now()->toDateString() }}"
+                    class="mt-2 w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+            </label>
+
+            <label class="block text-sm font-medium text-slate-700">
+                Gender
+                <select
+                    name="gender"
+                    class="mt-2 w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                    <option value="">Prefer not to say</option>
+                    <option value="female" @selected(old('gender', auth()->user()->gender) === 'female')>Female</option>
+                    <option value="male" @selected(old('gender', auth()->user()->gender) === 'male')>Male</option>
+                    <option value="non_binary" @selected(old('gender', auth()->user()->gender) === 'non_binary')>Non-binary</option>
+                    <option value="prefer_not_to_say" @selected(old('gender', auth()->user()->gender) === 'prefer_not_to_say')>Prefer not to say</option>
+                </select>
+            </label>
+        </div>
+
+        <label class="block text-sm font-medium text-slate-700">
             New password
             <input 
                 type="password" 
