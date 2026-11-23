@@ -67,6 +67,33 @@
                 </form>
             @endif
         </div>
+
+        @if (in_array($rental->status, ['approved', 'ongoing'], true))
+            @php($pendingExtension = $rental->extensions->firstWhere('status', 'pending'))
+            @if (! $pendingExtension)
+                <form method="POST" action="{{ route('user.rentals.extend', $rental) }}" class="mt-6 flex flex-wrap items-end gap-3 border-t border-slate-200 pt-6">
+                    @csrf
+                    <label class="block text-sm font-medium text-slate-700">
+                        New return date
+                        <input
+                            type="date"
+                            name="return_date"
+                            min="{{ $rental->return_date->copy()->addDay()->toDateString() }}"
+                            value="{{ old('return_date') }}"
+                            required
+                            class="mt-2 block rounded-xl border-slate-300"
+                        >
+                    </label>
+                    <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2.5 font-semibold text-white">
+                        Extend rental
+                    </button>
+                </form>
+            @else
+                <p class="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                    Extension request #{{ $pendingExtension->id }} is pending vendor approval.
+                </p>
+            @endif
+        @endif
     </div>
 </div>
 @endsection

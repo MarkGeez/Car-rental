@@ -4,7 +4,7 @@
 <div class="mx-auto flex max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
     <aside class="hidden w-60 shrink-0 lg:block">
         <div class="sticky top-24 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div class="bg-slate-950 px-5 py-5 text-white"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">Control center</p><p class="mt-2 text-sm text-slate-300">Keep the marketplace moving.</p></div>
+            <div class="bg-[#171717] px-5 py-5 text-white"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-blue-300">Control center</p><p class="mt-2 text-sm text-slate-300">Keep the marketplace moving.</p></div>
             <nav class="space-y-1 p-3">
                 @php($currentPath = request()->path())
                 @foreach ([['Dashboard', 'admin/dashboard', '⌂'], ['Vendors', 'admin/vendors', '◆'], ['Users', 'admin/users', '○'], ['Vehicles', 'admin/vehicles', '▤'], ['Rentals', 'admin/rentals', '▣'], ['Reviews', 'admin/reviews', '★']] as [$label, $path, $icon])

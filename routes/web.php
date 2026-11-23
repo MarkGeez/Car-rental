@@ -46,6 +46,7 @@ Route::middleware(['auth', 'role:customer', 'throttle:authenticated'])->prefix('
     Route::get('/rentals', [RentalController::class, 'index']);
     Route::post('/rentals', [RentalController::class, 'store']);
     Route::get('/rentals/{rental}', [RentalController::class, 'show'])->name('user.rentals.show');
+    Route::post('/rentals/{rental}/extend', [RentalController::class, 'extend'])->name('user.rentals.extend');
     Route::get('/rentals/{rental}/payment', [PaymentController::class, 'show'])->name('user.rentals.payment');
     Route::post('/rentals/{rental}/payment', [PaymentController::class, 'store']);
     Route::patch('/rentals/{rental}/cancel', [RentalController::class, 'cancel']);

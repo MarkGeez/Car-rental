@@ -1,6 +1,6 @@
 @php($vehicle = $vehicle ?? null)
-<article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-    <div class="flex h-44 items-center justify-center bg-slate-100 text-slate-400">
+<article class="overflow-hidden rounded-2xl border border-[#D4D4D4] bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div class="flex h-52 items-center justify-center bg-[#F5F5F5] text-slate-400">
         @if (isset($vehicle?->images) && $vehicle->images->isNotEmpty())
             <img src="{{ asset('storage/'.$vehicle->images->first()->image_path) }}" alt="{{ $vehicle->brand }} {{ $vehicle->model }}" class="h-full w-full object-cover">
         @else

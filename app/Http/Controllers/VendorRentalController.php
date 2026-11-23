@@ -45,6 +45,7 @@ class VendorRentalController extends Controller
 
             $hasConflict = Rental::query()
                 ->where('vehicle_id', $lockedRental->vehicle_id)
+                ->whereNotIn('id', $lockedRental->chainRentalIds())
                 ->whereIn('status', ['approved', 'ongoing'])
                 ->whereDate('pickup_date', '<=', $lockedRental->return_date)
                 ->whereDate('return_date', '>=', $lockedRental->pickup_date)
@@ -100,7 +101,7 @@ class VendorRentalController extends Controller
 
             $hasPaidConflict = Rental::query()
                 ->where('vehicle_id', $lockedRental->vehicle_id)
-                ->whereKeyNot($lockedRental->id)
+                ->whereNotIn('id', $lockedRental->chainRentalIds())
                 ->whereIn('status', ['approved', 'ongoing'])
                 ->whereDate('pickup_date', '<=', $lockedRental->return_date)
                 ->whereDate('return_date', '>=', $lockedRental->pickup_date)

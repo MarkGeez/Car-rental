@@ -7,6 +7,7 @@ use App\Models\Vehicle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class RentalController extends Controller
@@ -50,9 +51,77 @@ class RentalController extends Controller
     {
         abort_unless($rental->customer_id === $request->user()->id, 404);
 
-        $rental->load(['vehicle', 'payment', 'review']);
+        $rental->load(['vehicle', 'payment', 'review', 'extensions']);
 
         return view('user.rentals.show', compact('rental'));
+    }
+
+    public function extend(Request $request, Rental $rental): RedirectResponse
+    {
+        abort_unless($rental->customer_id === $request->user()->id, 404);
+        abort_unless(in_array($rental->status, ['approved', 'ongoing'], true), 422, 'Only approved or ongoing rentals can be extended.');
+
+        $data = $request->validate([
+            'return_date' => ['required', 'date', 'after:'.$rental->return_date->toDateString()],
+        ]);
+
+        abort_if(
+            $rental->extensions()->where('status', 'pending')->exists(),
+            422,
+            'You already have an extension request waiting for approval.',
+        );
+
+        $newReturnDate = Carbon::parse($data['return_date'])->startOfDay();
+        $currentReturnDate = $rental->return_date->copy()->startOfDay();
+        $extensionDays = $currentReturnDate->diffInDays($newReturnDate);
+
+        abort_unless($extensionDays > 0, 422, 'The new return date must be after the current return date.');
+
+        $chainRentalIds = $rental->chainRentalIds();
+
+        $hasConflict = Rental::query()
+            ->where('vehicle_id', $rental->vehicle_id)
+            ->whereNotIn('id', $chainRentalIds)
+            ->whereNotIn('status', ['cancelled', 'completed'])
+            ->whereDate('pickup_date', '<=', $newReturnDate->toDateString())
+            ->whereDate('return_date', '>=', $currentReturnDate->toDateString())
+            ->exists();
+
+        if ($hasConflict) {
+            return back()
+                ->withInput()
+                ->withErrors(['return_date' => 'The car is not available for those dates.']);
+        }
+
+        $dailyPrice = $rental->daily_price;
+        $totalAmount = $dailyPrice * $extensionDays;
+
+        $extension = DB::transaction(function () use ($request, $rental, $newReturnDate, $extensionDays, $dailyPrice, $totalAmount): Rental {
+            $lockedRental = Rental::query()->lockForUpdate()->findOrFail($rental->id);
+            abort_unless(in_array($lockedRental->status, ['approved', 'ongoing'], true), 422, 'Only approved or ongoing rentals can be extended.');
+            abort_if(
+                $lockedRental->extensions()->where('status', 'pending')->exists(),
+                422,
+                'You already have an extension request waiting for approval.',
+            );
+
+            return Rental::create([
+                'customer_id' => $request->user()->id,
+                'vehicle_id' => $lockedRental->vehicle_id,
+                'extended_from_id' => $lockedRental->id,
+                'pickup_date' => $lockedRental->return_date,
+                'return_date' => $newReturnDate,
+                'rental_days' => $extensionDays,
+                'daily_price' => $dailyPrice,
+                'total_amount' => $totalAmount,
+                'commission_amount' => $totalAmount * 0.1,
+                'vendor_amount' => $totalAmount * 0.9,
+                'status' => 'pending',
+            ]);
+        });
+
+        return redirect()->route('user.rentals.show', $extension)
+            ->with('success', 'Rental extension submitted for vendor approval.');
     }
 
     public function store(Request $request, Vehicle $vehicle): RedirectResponse

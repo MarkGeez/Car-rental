@@ -2,10 +2,10 @@
 
 @section('title', 'Rent a car with confidence')
 @section('content')
-<section class="bg-slate-950 text-white">
+<section class="bg-[#171717] text-white">
     <div class="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
-        <div class="space-y-6"><p class="font-semibold uppercase tracking-widest text-indigo-300">Move freely</p><h1 class="text-4xl font-bold tracking-tight sm:text-6xl">Your next journey starts here.</h1><p class="max-w-xl text-lg text-slate-300">Find reliable vehicles from trusted local vendors and book the right car for every trip.</p><div class="flex flex-wrap gap-3"><a href="{{ url('/cars') }}" class="rounded-xl bg-indigo-500 px-5 py-3 font-semibold hover:bg-indigo-400">Browse cars</a><a href="{{ url('/register') }}" class="rounded-xl border border-slate-600 px-5 py-3 font-semibold hover:bg-slate-800">Join RentaGo</a></div></div>
-        <div class="rounded-3xl bg-gradient-to-br from-indigo-500 to-cyan-400 p-1">
+        <div class="space-y-6"><p class="font-semibold uppercase tracking-widest text-[#93C5FD]">Move freely</p><h1 class="text-4xl font-bold tracking-tight sm:text-6xl">Your next journey starts here.</h1><p class="max-w-xl text-lg text-[#D4D4D4]">Find reliable vehicles from trusted local vendors and book the right car for every trip.</p><div class="flex flex-wrap gap-3"><a href="{{ url('/cars') }}" class="rounded-xl bg-[#2563EB] px-5 py-3 font-semibold shadow-sm hover:bg-[#1D4ED8]">Browse cars</a><a href="{{ url('/register') }}" class="rounded-xl border border-[#525252] px-5 py-3 font-semibold hover:bg-[#292929]">Join RentaGo</a></div></div>
+        <div class="rounded-3xl bg-[#2563EB] p-1 shadow-2xl">
             <div class="relative flex min-h-72 items-end overflow-hidden rounded-[1.4rem] bg-cover bg-center p-8"
                 style="background-image: url('{{ asset('images/better-cars-better-trips.jpg') }}')">
                 <div class="absolute inset-0 bg-slate-950/35"></div>

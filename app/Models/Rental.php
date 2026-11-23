@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Rental extends Model
@@ -22,6 +23,7 @@ class Rental extends Model
         'commission_amount',
         'vendor_amount',
         'status',
+        'extended_from_id',
     ];
 
     protected function casts(): array
@@ -54,5 +56,37 @@ class Rental extends Model
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);
+    }
+
+    public function extendedFrom(): BelongsTo
+    {
+        return $this->belongsTo(Rental::class, 'extended_from_id');
+    }
+
+    public function extensions(): HasMany
+    {
+        return $this->hasMany(Rental::class, 'extended_from_id');
+    }
+
+    public function chainRentalIds(): array
+    {
+        $ids = [];
+        $rental = $this;
+
+        while ($rental) {
+            $ids[] = $rental->id;
+
+            if (! $rental->extended_from_id) {
+                break;
+            }
+
+            $rental = Rental::query()->find($rental->extended_from_id);
+        }
+
+        $extensionIds = Rental::query()
+            ->whereIn('extended_from_id', $ids)
+            ->pluck('id');
+
+        return array_values(array_unique([...$ids, ...$extensionIds->all()]));
     }
 }
