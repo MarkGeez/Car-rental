@@ -160,6 +160,38 @@ test('a verified vendor can edit a vehicle and change its status', function () {
     expect($vehicle->refresh()->status)->toBe('unavailable');
 });
 
+test('vendor rental details display the customer name address and birthday', function () {
+    [$user, $vendor] = vendorUser('verified');
+    $vehicle = vehicleForVendor($vendor);
+    $customer = User::factory()->create([
+        'role' => 'customer',
+        'name' => 'Jamie Customer',
+        'address' => '456 Customer Avenue',
+        'birthday' => '1995-06-15',
+    ]);
+
+    $rental = Rental::create([
+        'customer_id' => $customer->id,
+        'vehicle_id' => $vehicle->id,
+        'pickup_date' => '2026-12-10',
+        'return_date' => '2026-12-12',
+        'rental_days' => 2,
+        'daily_price' => 1500,
+        'total_amount' => 3000,
+        'commission_amount' => 300,
+        'vendor_amount' => 2700,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($user)
+        ->get("/vendor/rentals/{$rental->id}")
+        ->assertOk()
+        ->assertSee('Customer details')
+        ->assertSee('Jamie Customer')
+        ->assertSee('456 Customer Avenue')
+        ->assertSee('June 15, 1995');
+});
+
 test('vendor approval rejects overlapping approved rentals', function () {
     [$user, $vendor] = vendorUser('verified');
     $vehicle = vehicleForVendor($vendor, 'VAN-003');
